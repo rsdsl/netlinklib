@@ -1,3 +1,4 @@
+#[cfg(feature = "tunnel")]
 pub use crate::tunnel;
 
 macro_rules! blockify {
@@ -18,6 +19,7 @@ macro_rules! blockify {
     };
 }
 
+#[cfg(feature = "addr")]
 pub mod addr {
     use crate::addr;
 
@@ -31,18 +33,24 @@ pub mod addr {
     blockify!(add_link_local, addr::add_link_local, link: String, addr: IpAddr, prefix_len: u8);
 }
 
+#[cfg(feature = "status")]
 pub mod link {
     use crate::link::{self, LinkState};
 
+    #[cfg(feature = "link")]
     blockify!(set, link::set, link: String, state: LinkState);
-    blockify!(is_up -> bool, link::is_up, link: String);
+    #[cfg(feature = "link")]
     blockify!(set_mtu, link::set_mtu, link: String, mtu: u32);
+    #[cfg(feature = "link")]
     blockify!(add_vlan, link::add_vlan, link: String, parent: String, vlan_id: u16);
+
+    blockify!(is_up -> bool, link::is_up, link: String);
     blockify!(wait_up, link::wait_up, link: String);
     blockify!(exists -> bool, link::exists, link: String);
     blockify!(wait_exists, link::wait_exists, link: String);
 }
 
+#[cfg(feature = "route")]
 pub mod route {
     use crate::route;
 

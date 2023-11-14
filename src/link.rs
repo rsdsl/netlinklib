@@ -7,12 +7,14 @@ use tokio::time::sleep;
 use futures::TryStreamExt;
 use netlink_packet_route::rtnl::IFF_UP;
 
+#[cfg(feature = "link")]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum LinkState {
     Up,
     Down,
 }
 
+#[cfg(feature = "link")]
 pub async fn set(link: String, state: LinkState) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
@@ -55,6 +57,7 @@ pub async fn is_up(link: String) -> Result<bool> {
     Ok(is_up)
 }
 
+#[cfg(feature = "link")]
 pub async fn set_mtu(link: String, mtu: u32) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
@@ -74,6 +77,7 @@ pub async fn set_mtu(link: String, mtu: u32) -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "link")]
 pub async fn add_vlan(link: String, parent: String, vlan_id: u16) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);

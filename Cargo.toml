@@ -14,4 +14,10 @@ thiserror = "1.0"
 tokio = { version = "1.0", features = ["time"] }
 
 [features]
+default = ["addr", "link", "route"]
+addr = []
+link = ["status"]
+route = []
+tunnel = []
+status = []
 blocking = ["tokio/rt-multi-thread"]
