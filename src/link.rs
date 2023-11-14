@@ -9,16 +9,9 @@ use tokio::time::sleep;
 use futures::TryStreamExt;
 use netlink_packet_route::rtnl::IFF_UP;
 
-#[cfg(feature = "link")]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum LinkState {
-    Up,
-    Down,
-}
-
 /// Brings an interface up or down.
 #[cfg(feature = "link")]
-pub async fn set(link: String, state: LinkState) -> Result<()> {
+pub async fn set(link: String, state: bool) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -34,8 +27,8 @@ pub async fn set(link: String, state: LinkState) -> Result<()> {
     let id = link.header.index;
 
     match state {
-        LinkState::Up => handle.link().set(id).up(),
-        LinkState::Down => handle.link().set(id).down(),
+        true => handle.link().set(id).up(),
+        false => handle.link().set(id).down(),
     }
     .execute()
     .await?;

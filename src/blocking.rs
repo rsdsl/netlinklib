@@ -43,10 +43,10 @@ pub mod addr {
 
 #[cfg(feature = "status")]
 pub mod link {
-    use crate::link::{self, LinkState};
+    use crate::link;
 
     #[cfg(feature = "link")]
-    blockify!(set, link::set, link: String, state: LinkState);
+    blockify!(set, link::set, link: String, state: bool);
     #[cfg(feature = "link")]
     blockify!(set_mtu, link::set_mtu, link: String, mtu: u32);
     #[cfg(feature = "link")]
