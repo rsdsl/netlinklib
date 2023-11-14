@@ -82,6 +82,14 @@ pub async fn flush6(link: String) -> Result<()> {
     Ok(())
 }
 
+/// Flushes all routes from an interface.
+pub async fn flush(link: String) -> Result<()> {
+    flush4(link.clone()).await?;
+    flush6(link).await?;
+
+    Ok(())
+}
+
 /// Adds a simple IPv4 route with an optional gateway.
 pub async fn add4(
     dst: Ipv4Addr,

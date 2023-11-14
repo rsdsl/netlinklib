@@ -66,6 +66,7 @@ pub mod route {
 
     blockify!(flush4, route::flush4, link: String);
     blockify!(flush6, route::flush6, link: String);
+    blockify!(flush, route::flush, link: String);
     blockify!(add4, route::add4, dst: Ipv4Addr, prefix_len: u8, rtr: Option<Ipv4Addr>, link: String);
     blockify!(add6, route::add6, dst: Ipv6Addr, prefix_len: u8, rtr: Option<Ipv6Addr>, link: String);
 }
