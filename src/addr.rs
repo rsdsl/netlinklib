@@ -4,9 +4,8 @@ use std::net::IpAddr;
 
 use futures::{future, TryStreamExt};
 use netlink_packet_route::{AddressMessage, AF_INET, AF_INET6, RT_SCOPE_LINK, RT_SCOPE_UNIVERSE};
-use tokio::runtime::Runtime;
 
-async fn do_flush(link: String) -> Result<()> {
+pub async fn flush(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -36,11 +35,7 @@ async fn do_flush(link: String) -> Result<()> {
     Ok(())
 }
 
-// pub fn flush(link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_flush(link))
-// }
-
-async fn do_flush4(link: String) -> Result<()> {
+pub async fn flush4(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -71,11 +66,7 @@ async fn do_flush4(link: String) -> Result<()> {
     Ok(())
 }
 
-// pub fn flush4(link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_flush4(link))
-// }
-
-async fn do_flush6(link: String) -> Result<()> {
+pub async fn flush6(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -106,11 +97,7 @@ async fn do_flush6(link: String) -> Result<()> {
     Ok(())
 }
 
-// pub fn flush6(link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_flush6(link))
-// }
-
-async fn do_flush6_global() -> Result<()> {
+pub async fn flush6_global() -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -133,11 +120,7 @@ async fn do_flush6_global() -> Result<()> {
     Ok(())
 }
 
-// pub fn flush6_global() -> Result<()> {
-//     Runtime::new()?.block_on(do_flush6_global())
-// }
-
-async fn do_add(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
+pub async fn add(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -157,11 +140,7 @@ async fn do_add(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
     Ok(())
 }
 
-// pub fn add(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
-//     Runtime::new()?.block_on(do_add(link, addr, prefix_len))
-// }
-
-async fn do_add_link_local(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
+pub async fn add_link_local(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -183,7 +162,3 @@ async fn do_add_link_local(link: String, addr: IpAddr, prefix_len: u8) -> Result
 
     Ok(())
 }
-
-// pub fn add_link_local(link: String, addr: IpAddr, prefix_len: u8) -> Result<()> {
-//     Runtime::new()?.block_on(do_add_link_local(link, addr, prefix_len))
-// }

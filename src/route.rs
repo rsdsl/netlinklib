@@ -5,9 +5,8 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use futures::{future, TryStreamExt};
 use netlink_packet_route::{RouteMessage, RT_SCOPE_LINK};
 use rtnetlink::IpVersion;
-use tokio::runtime::Runtime;
 
-async fn do_flush4(link: String) -> Result<()> {
+pub async fn flush4(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -43,11 +42,7 @@ async fn do_flush4(link: String) -> Result<()> {
     Ok(())
 }
 
-// pub fn flush4(link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_flush4(link))
-// }
-
-async fn do_flush6(link: String) -> Result<()> {
+pub async fn flush6(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -83,18 +78,12 @@ async fn do_flush6(link: String) -> Result<()> {
     Ok(())
 }
 
-// pub fn flush6(link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_flush6(link))
-// }
-//
-// pub fn flush(link: String) -> Result<()> {
-//     flush4(link.clone())?;
-//     flush6(link)?;
-//
-//     Ok(())
-// }
-
-async fn do_add4(dst: Ipv4Addr, prefix_len: u8, rtr: Option<Ipv4Addr>, link: String) -> Result<()> {
+pub async fn add4(
+    dst: Ipv4Addr,
+    prefix_len: u8,
+    rtr: Option<Ipv4Addr>,
+    link: String,
+) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -126,11 +115,12 @@ async fn do_add4(dst: Ipv4Addr, prefix_len: u8, rtr: Option<Ipv4Addr>, link: Str
     Ok(())
 }
 
-// pub fn add4(dst: Ipv4Addr, prefix_len: u8, rtr: Option<Ipv4Addr>, link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_add4(dst, prefix_len, rtr, link))
-// }
-
-async fn do_add6(dst: Ipv6Addr, prefix_len: u8, rtr: Option<Ipv6Addr>, link: String) -> Result<()> {
+pub async fn add6(
+    dst: Ipv6Addr,
+    prefix_len: u8,
+    rtr: Option<Ipv6Addr>,
+    link: String,
+) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
 
@@ -161,7 +151,3 @@ async fn do_add6(dst: Ipv6Addr, prefix_len: u8, rtr: Option<Ipv6Addr>, link: Str
     add.execute().await?;
     Ok(())
 }
-
-// pub fn add6(dst: Ipv6Addr, prefix_len: u8, rtr: Option<Ipv6Addr>, link: String) -> Result<()> {
-//     Runtime::new()?.block_on(do_add6(dst, prefix_len, rtr, link))
-// }
