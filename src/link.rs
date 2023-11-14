@@ -14,6 +14,7 @@ pub enum LinkState {
     Down,
 }
 
+/// Brings an interface up or down.
 #[cfg(feature = "link")]
 pub async fn set(link: String, state: LinkState) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
@@ -40,6 +41,12 @@ pub async fn set(link: String, state: LinkState) -> Result<()> {
     Ok(())
 }
 
+/// Reports whether an interface is up.
+///
+/// # Errors
+///
+/// This function fails if the interface doesn't exist
+/// or if any other `rtnetlink` error occurs.
 pub async fn is_up(link: String) -> Result<bool> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
@@ -57,6 +64,7 @@ pub async fn is_up(link: String) -> Result<bool> {
     Ok(is_up)
 }
 
+/// Sets the MTU of an interface.
 #[cfg(feature = "link")]
 pub async fn set_mtu(link: String, mtu: u32) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
@@ -77,6 +85,13 @@ pub async fn set_mtu(link: String, mtu: u32) -> Result<()> {
     Ok(())
 }
 
+/// Creates a VLAN interface on top of a parent interface.
+///
+/// # Arguments
+///
+/// * `link` - The name of the VLAN interface to be created.
+/// * `parent` - The name of the parent interface for the actual traffic.
+/// * `vlan_id` - The VLAN ID for tagging.
 #[cfg(feature = "link")]
 pub async fn add_vlan(link: String, parent: String, vlan_id: u16) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
@@ -103,6 +118,7 @@ pub async fn add_vlan(link: String, parent: String, vlan_id: u16) -> Result<()> 
     Ok(())
 }
 
+/// Waits for an interface to come up, including waiting for its creation.
 pub async fn wait_up(link: String) -> Result<()> {
     while !exists(link.clone()).await? || !is_up(link.clone()).await? {
         sleep(Duration::from_millis(200)).await;
@@ -111,6 +127,7 @@ pub async fn wait_up(link: String) -> Result<()> {
     Ok(())
 }
 
+/// Reports whether an interface exists.
 pub async fn exists(link: String) -> Result<bool> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
@@ -127,6 +144,7 @@ pub async fn exists(link: String) -> Result<bool> {
     Ok(exists)
 }
 
+/// Waits until an interface is created.
 pub async fn wait_exists(link: String) -> Result<()> {
     while !exists(link.clone()).await? {
         sleep(Duration::from_millis(200)).await;

@@ -6,6 +6,7 @@ use futures::{future, TryStreamExt};
 use netlink_packet_route::{RouteMessage, RT_SCOPE_LINK};
 use rtnetlink::IpVersion;
 
+/// Flushes all IPv4 routes from an interface.
 pub async fn flush4(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
@@ -42,6 +43,7 @@ pub async fn flush4(link: String) -> Result<()> {
     Ok(())
 }
 
+/// Flushes all IPv6 routes from an interface.
 pub async fn flush6(link: String) -> Result<()> {
     let (conn, handle, _) = rtnetlink::new_connection()?;
     tokio::spawn(conn);
@@ -78,6 +80,7 @@ pub async fn flush6(link: String) -> Result<()> {
     Ok(())
 }
 
+/// Adds a simple IPv4 route with an optional gateway.
 pub async fn add4(
     dst: Ipv4Addr,
     prefix_len: u8,
@@ -115,6 +118,7 @@ pub async fn add4(
     Ok(())
 }
 
+/// Adds a simple IPv6 route with an optional gateway.
 pub async fn add6(
     dst: Ipv6Addr,
     prefix_len: u8,

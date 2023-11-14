@@ -20,6 +20,15 @@ impl Drop for Sit {
 }
 
 impl Sit {
+    /// Creates a new 6in4 tunnel on a parent device.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the tunnel to be created.
+    /// * `master` - The name of the parent interface for actual traffic.
+    /// * `laddr` - The address of the local tunnel endpoint,
+    ///             e.g. the WAN IPv4 address of a router.
+    /// * `raddr` - The address of the remote tunnel endpoint, e.g. a tunnel server.
     pub fn new(name: String, master: String, laddr: Ipv4Addr, raddr: Ipv4Addr) -> Result<Self> {
         let tnlname = CString::new(&*name)?;
         let ifmaster = CString::new(&*master)?;
@@ -108,6 +117,14 @@ impl Drop for IpIp6 {
 }
 
 impl IpIp6 {
+    /// Creates a new 4in6 tunnel on a parent device.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of the tunnel to be created.
+    /// * `master` - The name of the parent interface for actual traffic.
+    /// * `laddr` - The address of the local tunnel endpoint, e.g. the IPv6 GUA of a DS-Lite B4.
+    /// * `raddr` - The address of the remote tunnel endpoint, e.g. a DS-Lite AFTR.
     pub fn new(name: String, master: String, laddr: Ipv6Addr, raddr: Ipv6Addr) -> Result<Self> {
         let tnlname = CString::new(&*name)?;
         let ifmaster = CString::new(&*master)?;
