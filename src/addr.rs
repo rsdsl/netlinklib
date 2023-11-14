@@ -1,3 +1,5 @@
+//! Simple functions to add and delete IP addresses.
+
 use crate::{Error, Result};
 
 use std::net::IpAddr;

@@ -1,3 +1,11 @@
+//! Blocking wrappers around the asynchronous API.
+//!
+//! All functions except for members of the tunnel module internally use their
+//! async counterparts inside a temporary tokio runtime.
+//! Tunnels are already synchronous.
+//!
+//! Consult the async modules for documentation.
+
 #[cfg(feature = "tunnel")]
 pub use crate::tunnel;
 

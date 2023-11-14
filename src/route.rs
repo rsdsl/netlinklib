@@ -1,3 +1,5 @@
+//! Simple functions to add and delete routes.
+
 use crate::{Error, Result};
 
 use std::net::{Ipv4Addr, Ipv6Addr};

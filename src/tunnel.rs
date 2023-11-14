@@ -1,3 +1,5 @@
+//! Owned 6in4 and 4in6 tunnels with automatic deletion on drop.
+
 use crate::{Error, Result};
 
 use std::ffi::{c_char, c_int, CString};

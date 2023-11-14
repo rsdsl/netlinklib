@@ -1,3 +1,5 @@
+//! Simple functions to add, monitor and configure network interfaces.
+
 use crate::{Error, Result};
 
 use std::time::Duration;
