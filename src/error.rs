@@ -7,11 +7,11 @@ pub enum Error {
     #[error("link {0} not found")]
     LinkNotFound(String),
 
-    #[error("ffi nul: {0}")]
+    #[error("link name contains nul bytes: {0}")]
     Nul(#[from] ffi::NulError),
-    #[error("io: {0}")]
+    #[error("io error: {0}")]
     Io(#[from] io::Error),
-    #[error("rtnetlink: {0}")]
+    #[error("rtnetlink error: {0}")]
     RtNetlink(#[from] rtnetlink::Error),
 }
 
