@@ -56,6 +56,7 @@ pub mod link {
     blockify!(wait_up, link::wait_up, link: String);
     blockify!(exists -> bool, link::exists, link: String);
     blockify!(wait_exists, link::wait_exists, link: String);
+    blockify!(index -> u32, link::index, link: String);
 }
 
 #[cfg(feature = "route")]

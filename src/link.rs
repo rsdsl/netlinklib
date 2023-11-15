@@ -147,3 +147,20 @@ pub async fn wait_exists(link: String) -> Result<()> {
 
     Ok(())
 }
+
+/// Returns the index of an interface.
+pub async fn index(link: String) -> Result<u32> {
+    let (conn, handle, _) = rtnetlink::new_connection()?;
+    tokio::spawn(conn);
+
+    let link = handle
+        .link()
+        .get()
+        .match_name(link.clone())
+        .execute()
+        .try_next()
+        .await?
+        .ok_or(Error::LinkNotFound(link))?;
+
+    Ok(link.header.index)
+}
