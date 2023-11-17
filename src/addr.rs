@@ -2,10 +2,12 @@
 
 use crate::{Error, Result};
 
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use futures::{future, TryStreamExt};
-use netlink_packet_route::{AddressMessage, AF_INET, AF_INET6, RT_SCOPE_LINK, RT_SCOPE_UNIVERSE};
+use futures::{future, TryStream, TryStreamExt};
+use netlink_packet_route::{
+    address::Nla, AddressMessage, AF_INET, AF_INET6, RT_SCOPE_LINK, RT_SCOPE_UNIVERSE,
+};
 
 /// Flushes all addresses of an interface.
 pub async fn flush(link: String) -> Result<()> {
@@ -170,4 +172,53 @@ pub async fn add_link_local(link: String, addr: IpAddr, prefix_len: u8) -> Resul
     req.execute().await?;
 
     Ok(())
+}
+
+/// Returns an iterator over the IP addresses of an interface.
+pub async fn get(link: String) -> Result<impl TryStream<Ok = IpAddr, Error = Error>> {
+    let (conn, handle, _) = rtnetlink::new_connection()?;
+    tokio::spawn(conn);
+
+    let link = handle
+        .link()
+        .get()
+        .match_name(link.clone())
+        .execute()
+        .try_next()
+        .await?
+        .ok_or(Error::LinkNotFound(link))?;
+
+    Ok(handle
+        .address()
+        .get()
+        .set_link_index_filter(link.header.index)
+        .execute()
+        .err_into::<Error>()
+        .try_filter_map(|msg| {
+            future::ready(Ok(if let Some(Nla::Address(bytes)) = msg.nlas.first() {
+                match msg.header.family as u16 {
+                    AF_INET => {
+                        let octets: [u8; 4] = (*bytes)
+                            .clone()
+                            .try_into()
+                            .expect("nla does not match ipv4 address length");
+                        let ip = IpAddr::from(Ipv4Addr::from(octets));
+
+                        Some(ip)
+                    }
+                    AF_INET6 => {
+                        let octets: [u8; 16] = (*bytes)
+                            .clone()
+                            .try_into()
+                            .expect("nla does not match ipv6 address length");
+                        let ip = IpAddr::from(Ipv6Addr::from(octets));
+
+                        Some(ip)
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            }))
+        }))
 }

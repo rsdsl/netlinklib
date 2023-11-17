@@ -33,12 +33,19 @@ pub mod addr {
 
     use std::net::IpAddr;
 
+    use futures::TryStreamExt;
+
     blockify!(flush, addr::flush, link: String);
     blockify!(flush4, addr::flush4, link: String);
     blockify!(flush6, addr::flush6, link: String);
     blockify!(flush6_global, addr::flush6_global);
     blockify!(add, addr::add, link: String, addr: IpAddr, prefix_len: u8);
     blockify!(add_link_local, addr::add_link_local, link: String, addr: IpAddr, prefix_len: u8);
+
+    pub fn get(link: String) -> crate::Result<Vec<IpAddr>> {
+        tokio::runtime::Runtime::new()?
+            .block_on(async { addr::get(link).await?.try_collect().await })
+    }
 }
 
 #[cfg(feature = "status")]
