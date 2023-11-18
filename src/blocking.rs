@@ -13,6 +13,13 @@ pub use crate::tunnel;
 #[derive(Debug)]
 pub struct Connection(crate::Connection);
 
+impl Connection {
+    /// Creates a new blocking wrapper around [`crate::Connection`].
+    pub fn new() -> crate::Result<Self> {
+        Ok(Self(crate::Connection::new()?))
+    }
+}
+
 macro_rules! blockify {
     ($blk:ident) => {
         pub fn $blk(&self) -> crate::Result<()> {
