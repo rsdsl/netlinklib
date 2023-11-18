@@ -54,7 +54,7 @@ pub mod addr {
         blockify!(address_add, link: String, addr: IpAddr, prefix_len: u8);
         blockify!(address_add_link_local, link: String, addr: IpAddr, prefix_len: u8);
 
-        pub fn get(&self, link: String) -> crate::Result<Vec<IpAddr>> {
+        pub fn address_get(&self, link: String) -> crate::Result<Vec<IpAddr>> {
             tokio::runtime::Runtime::new()?
                 .block_on(async { self.0.address_get(link).await?.try_collect().await })
         }
