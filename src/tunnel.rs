@@ -36,15 +36,17 @@ impl Sit {
         let ifmaster = CString::new(&*master)?;
         let sit0 = CString::new("sit0")?;
 
-        let tnlname_signed = unsafe { &*(tnlname.as_bytes() as *const _ as *const [i8]) };
-        let mut tnlname_arr = [0i8; libc::IFNAMSIZ];
-        for (&i, o) in tnlname_signed.iter().zip(tnlname_arr.iter_mut()) {
+        #[allow(clippy::unnecessary_cast)]
+        let tnlname_raw = unsafe { &*(tnlname.as_bytes() as *const _ as *const [c_char]) };
+        let mut tnlname_arr = [0; libc::IFNAMSIZ];
+        for (&i, o) in tnlname_raw.iter().zip(tnlname_arr.iter_mut()) {
             *o = i;
         }
 
-        let sit0_signed = unsafe { &*(sit0.as_bytes() as *const _ as *const [i8]) };
-        let mut sit0_arr = [0i8; libc::IFNAMSIZ];
-        for (&i, o) in sit0_signed.iter().zip(sit0_arr.iter_mut()) {
+        #[allow(clippy::unnecessary_cast)]
+        let sit0_raw = unsafe { &*(sit0.as_bytes() as *const _ as *const [c_char]) };
+        let mut sit0_arr = [0; libc::IFNAMSIZ];
+        for (&i, o) in sit0_raw.iter().zip(sit0_arr.iter_mut()) {
             *o = i;
         }
 
@@ -132,15 +134,17 @@ impl IpIp6 {
         let ifmaster = CString::new(&*master)?;
         let ip6tnl0 = CString::new("ip6tnl0")?;
 
-        let tnlname_signed = unsafe { &*(tnlname.as_bytes() as *const _ as *const [i8]) };
-        let mut tnlname_arr = [0i8; libc::IFNAMSIZ];
-        for (&i, o) in tnlname_signed.iter().zip(tnlname_arr.iter_mut()) {
+        #[allow(clippy::unnecessary_cast)]
+        let tnlname_raw = unsafe { &*(tnlname.as_bytes() as *const _ as *const [c_char]) };
+        let mut tnlname_arr = [0; libc::IFNAMSIZ];
+        for (&i, o) in tnlname_raw.iter().zip(tnlname_arr.iter_mut()) {
             *o = i;
         }
 
-        let ip6tnl0_signed = unsafe { &*(ip6tnl0.as_bytes() as *const _ as *const [i8]) };
-        let mut ip6tnl0_arr = [0i8; libc::IFNAMSIZ];
-        for (&i, o) in ip6tnl0_signed.iter().zip(ip6tnl0_arr.iter_mut()) {
+        #[allow(clippy::unnecessary_cast)]
+        let ip6tnl0_raw = unsafe { &*(ip6tnl0.as_bytes() as *const _ as *const [c_char]) };
+        let mut ip6tnl0_arr = [0; libc::IFNAMSIZ];
+        for (&i, o) in ip6tnl0_raw.iter().zip(ip6tnl0_arr.iter_mut()) {
             *o = i;
         }
 
@@ -192,9 +196,10 @@ impl IpIp6 {
 fn delete_tunnel(name: &str) -> Result<()> {
     let tnlname = CString::new(name)?;
 
-    let tnlname_signed = unsafe { &*(tnlname.as_bytes() as *const _ as *const [i8]) };
-    let mut tnlname_arr = [0i8; libc::IFNAMSIZ];
-    for (&i, o) in tnlname_signed.iter().zip(tnlname_arr.iter_mut()) {
+    #[allow(clippy::unnecessary_cast)]
+    let tnlname_raw = unsafe { &*(tnlname.as_bytes() as *const _ as *const [c_char]) };
+    let mut tnlname_arr = [0; libc::IFNAMSIZ];
+    for (&i, o) in tnlname_raw.iter().zip(tnlname_arr.iter_mut()) {
         *o = i;
     }
 
