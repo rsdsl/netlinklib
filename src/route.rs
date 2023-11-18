@@ -1,6 +1,6 @@
 //! Simple functions to add and delete routes.
 
-use crate::{Error, Result};
+use crate::{Connection, Error, Result};
 
 use std::net::{Ipv4Addr, Ipv6Addr};
 
@@ -8,160 +8,160 @@ use futures::{future, TryStreamExt};
 use netlink_packet_route::{RouteMessage, RT_SCOPE_LINK};
 use rtnetlink::IpVersion;
 
-/// Flushes all IPv4 routes from an interface.
-pub async fn flush4(link: String) -> Result<()> {
-    let (conn, handle, _) = rtnetlink::new_connection()?;
-    tokio::spawn(conn);
+impl Connection {
+    /// Flushes all IPv4 routes from an interface.
+    pub async fn route_flush4(&self, link: String) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(link))?;
 
-    let link = handle
-        .link()
-        .get()
-        .match_name(link.clone())
-        .execute()
-        .try_next()
-        .await?
-        .ok_or(Error::LinkNotFound(link))?;
+        let id = link.header.index;
 
-    let id = link.header.index;
-
-    let routes: Vec<RouteMessage> = handle
-        .route()
-        .get(IpVersion::V4)
-        .execute()
-        .try_filter(|route| {
-            future::ready(if let Some(ifi) = route.output_interface() {
-                ifi == id
-            } else {
-                false
+        let routes: Vec<RouteMessage> = self
+            .handle()
+            .route()
+            .get(IpVersion::V4)
+            .execute()
+            .try_filter(|route| {
+                future::ready(if let Some(ifi) = route.output_interface() {
+                    ifi == id
+                } else {
+                    false
+                })
             })
-        })
-        .try_collect()
-        .await?;
+            .try_collect()
+            .await?;
 
-    for route in routes {
-        handle.route().del(route).execute().await?;
+        for route in routes {
+            self.handle().route().del(route).execute().await?;
+        }
+
+        Ok(())
     }
 
-    Ok(())
-}
+    /// Flushes all IPv6 routes from an interface.
+    pub async fn route_flush6(&self, link: String) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(link))?;
 
-/// Flushes all IPv6 routes from an interface.
-pub async fn flush6(link: String) -> Result<()> {
-    let (conn, handle, _) = rtnetlink::new_connection()?;
-    tokio::spawn(conn);
+        let id = link.header.index;
 
-    let link = handle
-        .link()
-        .get()
-        .match_name(link.clone())
-        .execute()
-        .try_next()
-        .await?
-        .ok_or(Error::LinkNotFound(link))?;
-
-    let id = link.header.index;
-
-    let routes: Vec<RouteMessage> = handle
-        .route()
-        .get(IpVersion::V6)
-        .execute()
-        .try_filter(|route| {
-            future::ready(if let Some(ifi) = route.output_interface() {
-                ifi == id
-            } else {
-                false
+        let routes: Vec<RouteMessage> = self
+            .handle()
+            .route()
+            .get(IpVersion::V6)
+            .execute()
+            .try_filter(|route| {
+                future::ready(if let Some(ifi) = route.output_interface() {
+                    ifi == id
+                } else {
+                    false
+                })
             })
-        })
-        .try_collect()
-        .await?;
+            .try_collect()
+            .await?;
 
-    for route in routes {
-        handle.route().del(route).execute().await?;
+        for route in routes {
+            self.handle().route().del(route).execute().await?;
+        }
+
+        Ok(())
     }
 
-    Ok(())
-}
+    /// Flushes all routes from an interface.
+    pub async fn route_flush(&self, link: String) -> Result<()> {
+        self.route_flush4(link.clone()).await?;
+        self.route_flush6(link).await?;
 
-/// Flushes all routes from an interface.
-pub async fn flush(link: String) -> Result<()> {
-    flush4(link.clone()).await?;
-    flush6(link).await?;
-
-    Ok(())
-}
-
-/// Adds a simple IPv4 route with an optional gateway.
-pub async fn add4(
-    dst: Ipv4Addr,
-    prefix_len: u8,
-    rtr: Option<Ipv4Addr>,
-    link: String,
-) -> Result<()> {
-    let (conn, handle, _) = rtnetlink::new_connection()?;
-    tokio::spawn(conn);
-
-    let link = handle
-        .link()
-        .get()
-        .match_name(link.clone())
-        .execute()
-        .try_next()
-        .await?
-        .ok_or(Error::LinkNotFound(link))?;
-
-    let id = link.header.index;
-
-    let mut add = handle
-        .route()
-        .add()
-        .v4()
-        .destination_prefix(dst, prefix_len)
-        .output_interface(id);
-
-    if let Some(rtr) = rtr {
-        add = add.gateway(rtr);
-    } else {
-        add = add.scope(RT_SCOPE_LINK);
+        Ok(())
     }
 
-    add.execute().await?;
-    Ok(())
-}
+    /// Adds a simple IPv4 route with an optional gateway.
+    pub async fn route_add4(
+        &self,
+        dst: Ipv4Addr,
+        prefix_len: u8,
+        rtr: Option<Ipv4Addr>,
+        link: String,
+    ) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(link))?;
 
-/// Adds a simple IPv6 route with an optional gateway.
-pub async fn add6(
-    dst: Ipv6Addr,
-    prefix_len: u8,
-    rtr: Option<Ipv6Addr>,
-    link: String,
-) -> Result<()> {
-    let (conn, handle, _) = rtnetlink::new_connection()?;
-    tokio::spawn(conn);
+        let id = link.header.index;
 
-    let link = handle
-        .link()
-        .get()
-        .match_name(link.clone())
-        .execute()
-        .try_next()
-        .await?
-        .ok_or(Error::LinkNotFound(link))?;
+        let mut add = self
+            .handle()
+            .route()
+            .add()
+            .v4()
+            .destination_prefix(dst, prefix_len)
+            .output_interface(id);
 
-    let id = link.header.index;
+        if let Some(rtr) = rtr {
+            add = add.gateway(rtr);
+        } else {
+            add = add.scope(RT_SCOPE_LINK);
+        }
 
-    let mut add = handle
-        .route()
-        .add()
-        .v6()
-        .destination_prefix(dst, prefix_len)
-        .output_interface(id);
-
-    if let Some(rtr) = rtr {
-        add = add.gateway(rtr);
-    } else {
-        add = add.scope(RT_SCOPE_LINK);
+        add.execute().await?;
+        Ok(())
     }
 
-    add.execute().await?;
-    Ok(())
+    /// Adds a simple IPv6 route with an optional gateway.
+    pub async fn route_add6(
+        &self,
+        dst: Ipv6Addr,
+        prefix_len: u8,
+        rtr: Option<Ipv6Addr>,
+        link: String,
+    ) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(link))?;
+
+        let id = link.header.index;
+
+        let mut add = self
+            .handle()
+            .route()
+            .add()
+            .v6()
+            .destination_prefix(dst, prefix_len)
+            .output_interface(id);
+
+        if let Some(rtr) = rtr {
+            add = add.gateway(rtr);
+        } else {
+            add = add.scope(RT_SCOPE_LINK);
+        }
+
+        add.execute().await?;
+        Ok(())
+    }
 }
