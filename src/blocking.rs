@@ -11,31 +11,37 @@ pub use crate::tunnel;
 
 /// A blocking wrapper around the async [`crate::Connection`].
 #[derive(Debug)]
-pub struct Connection(crate::Connection);
+pub struct Connection {
+    rt: tokio::runtime::Runtime,
+    conn: crate::Connection,
+}
 
 impl Connection {
     /// Creates a new blocking wrapper around [`crate::Connection`].
     pub fn new() -> crate::Result<Self> {
-        Ok(Self(
-            tokio::runtime::Runtime::new()?.block_on(crate::Connection::new())?,
-        ))
+        let rt = tokio::runtime::Runtime::new()?;
+
+        Ok(Self {
+            conn: rt.block_on(crate::Connection::new())?,
+            rt,
+        })
     }
 }
 
 macro_rules! blockify {
     ($blk:ident) => {
         pub fn $blk(&self) -> crate::Result<()> {
-            tokio::runtime::Runtime::new()?.block_on(self.0.$blk())
+            self.rt.block_on(self.conn.$blk())
         }
     };
     ($blk:ident, $($v:tt: $t:ty),*) => {
         pub fn $blk(&self, $($v: $t),*) -> crate::Result<()> {
-            tokio::runtime::Runtime::new()?.block_on(self.0.$blk($($v),*))
+            self.rt.block_on(self.conn.$blk($($v),*))
         }
     };
     ($blk:ident -> $ret:ty, $($v:tt: $t:ty),*) => {
         pub fn $blk(&self, $($v: $t),*) -> crate::Result<$ret> {
-            tokio::runtime::Runtime::new()?.block_on(self.0.$blk($($v),*))
+            self.rt.block_on(self.conn.$blk($($v),*))
         }
     };
 }
@@ -57,8 +63,8 @@ pub mod addr {
         blockify!(address_add_link_local, link: String, addr: IpAddr, prefix_len: u8);
 
         pub fn address_get(&self, link: String) -> crate::Result<Vec<IpAddr>> {
-            tokio::runtime::Runtime::new()?
-                .block_on(async { self.0.address_get(link).await?.try_collect().await })
+            self.rt
+                .block_on(async { self.conn.address_get(link).await?.try_collect().await })
         }
     }
 }
