@@ -9,7 +9,7 @@ impl Connection {
     /// Creates a new connection and handle to rtnetlink and spawns the connection task.
     /// Can be used to interact with rtnetlink by enabling certain crate features
     /// and calling the methods they provide.
-    pub fn new() -> Result<Self> {
+    pub async fn new() -> Result<Self> {
         let (conn, handle, _) = rtnetlink::new_connection()?;
         tokio::spawn(conn);
 

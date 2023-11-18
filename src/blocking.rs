@@ -16,7 +16,9 @@ pub struct Connection(crate::Connection);
 impl Connection {
     /// Creates a new blocking wrapper around [`crate::Connection`].
     pub fn new() -> crate::Result<Self> {
-        Ok(Self(crate::Connection::new()?))
+        Ok(Self(
+            tokio::runtime::Runtime::new()?.block_on(crate::Connection::new())?,
+        ))
     }
 }
 
