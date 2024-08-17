@@ -118,6 +118,30 @@ impl Connection {
         Ok(())
     }
 
+    /// Deletes an interface. Fails if the interface doesn't exist.
+    ///
+    /// # Arguments
+    ///
+    /// * `link` - The name of the interface to be deleted.
+    #[cfg(feature = "link")]
+    pub async fn link_delete(&self, link: String) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(link))?;
+
+        let id = link.header.index;
+
+        self.handle().link().del(id).execute().await?;
+
+        Ok(())
+    }
+
     /// Waits for an interface to come up, including waiting for its creation.
     pub async fn link_wait_up(&self, link: String) -> Result<()> {
         while !self.link_exists(link.clone()).await? || !self.link_is_up(link.clone()).await? {

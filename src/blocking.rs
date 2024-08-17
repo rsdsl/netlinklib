@@ -82,6 +82,8 @@ pub mod link {
         blockify!(link_add_vlan, link: String, parent: String, vlan_id: u16);
         #[cfg(feature = "link")]
         blockify!(link_add_wireguard, link: String);
+        #[cfg(feature = "link")]
+        blockify!(link_delete, link: String);
 
         blockify!(link_is_up -> bool, link: String);
         blockify!(link_wait_up, link: String);
