@@ -1,6 +1,6 @@
 #! /bin/bash
 
-TARGETS="radvd pppoe3 dslite netlinkd dhcp4d"
+TARGETS="radvd pppoe3 dslite netlinkd dhcp4d wgd"
 
 for T in ${TARGETS}; do
 	cd ${T}
