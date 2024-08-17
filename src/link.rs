@@ -106,6 +106,18 @@ impl Connection {
         Ok(())
     }
 
+    /// Creates a WireGuard interface.
+    ///
+    /// # Arguments
+    ///
+    /// * `link` - The name of the WireGuard interface to be created.
+    #[cfg(feature = "link")]
+    pub async fn link_add_wireguard(&self, link: String) -> Result<()> {
+        self.handle().link().add().wireguard(link).execute().await?;
+
+        Ok(())
+    }
+
     /// Waits for an interface to come up, including waiting for its creation.
     pub async fn link_wait_up(&self, link: String) -> Result<()> {
         while !self.link_exists(link.clone()).await? || !self.link_is_up(link.clone()).await? {
