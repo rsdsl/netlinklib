@@ -5,7 +5,7 @@ use crate::{Connection, Error, Result};
 use std::net::{Ipv4Addr, Ipv6Addr};
 
 use futures::{future, TryStreamExt};
-use netlink_packet_route::{RouteMessage, RT_SCOPE_LINK};
+use netlink_packet_route::route::{RouteAttribute, RouteMessage, RouteScope};
 use rtnetlink::IpVersion;
 
 impl Connection {
@@ -29,11 +29,19 @@ impl Connection {
             .get(IpVersion::V4)
             .execute()
             .try_filter(|route| {
-                future::ready(if let Some(ifi) = route.output_interface() {
-                    ifi == id
-                } else {
-                    false
-                })
+                future::ready(
+                    if let Some(ifi) = route.attributes.iter().find_map(|attr| {
+                        if let RouteAttribute::Oif(oif) = *attr {
+                            Some(oif)
+                        } else {
+                            None
+                        }
+                    }) {
+                        ifi == id
+                    } else {
+                        false
+                    },
+                )
             })
             .try_collect()
             .await?;
@@ -65,11 +73,19 @@ impl Connection {
             .get(IpVersion::V6)
             .execute()
             .try_filter(|route| {
-                future::ready(if let Some(ifi) = route.output_interface() {
-                    ifi == id
-                } else {
-                    false
-                })
+                future::ready(
+                    if let Some(ifi) = route.attributes.iter().find_map(|attr| {
+                        if let RouteAttribute::Oif(oif) = *attr {
+                            Some(oif)
+                        } else {
+                            None
+                        }
+                    }) {
+                        ifi == id
+                    } else {
+                        false
+                    },
+                )
             })
             .try_collect()
             .await?;
@@ -120,7 +136,7 @@ impl Connection {
         if let Some(rtr) = rtr {
             add = add.gateway(rtr);
         } else {
-            add = add.scope(RT_SCOPE_LINK);
+            add = add.scope(RouteScope::Link);
         }
 
         add.execute().await?;
@@ -158,7 +174,7 @@ impl Connection {
         if let Some(rtr) = rtr {
             add = add.gateway(rtr);
         } else {
-            add = add.scope(RT_SCOPE_LINK);
+            add = add.scope(RouteScope::Link);
         }
 
         add.execute().await?;

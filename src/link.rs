@@ -7,7 +7,7 @@ use std::time::Duration;
 use tokio::time::sleep;
 
 use futures::TryStreamExt;
-use netlink_packet_route::rtnl::IFF_UP;
+use netlink_packet_route::link::LinkFlag;
 
 impl Connection {
     /// Brings an interface up or down.
@@ -52,7 +52,7 @@ impl Connection {
             .await?
             .ok_or(Error::LinkNotFound(link))?;
 
-        let is_up = link.header.flags & IFF_UP == IFF_UP;
+        let is_up = link.header.flags.iter().any(|flag| *flag == LinkFlag::Up);
         Ok(is_up)
     }
 

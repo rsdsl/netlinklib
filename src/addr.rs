@@ -2,12 +2,11 @@
 
 use crate::{Connection, Error, Result};
 
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::IpAddr;
 
 use futures::{future, TryStream, TryStreamExt};
-use netlink_packet_route::{
-    address::Nla, AddressMessage, AF_INET, AF_INET6, RT_SCOPE_LINK, RT_SCOPE_UNIVERSE,
-};
+use netlink_packet_route::address::{AddressAttribute, AddressMessage, AddressScope};
+use netlink_packet_route::AddressFamily;
 
 impl Connection {
     /// Flushes all addresses of an interface.
@@ -60,7 +59,7 @@ impl Connection {
             .get()
             .set_link_index_filter(id)
             .execute()
-            .try_filter(|addr| future::ready(addr.header.family == AF_INET as u8))
+            .try_filter(|addr| future::ready(addr.header.family == AddressFamily::Inet))
             .try_collect()
             .await?;
 
@@ -91,7 +90,7 @@ impl Connection {
             .get()
             .set_link_index_filter(id)
             .execute()
-            .try_filter(|addr| future::ready(addr.header.family == AF_INET6 as u8))
+            .try_filter(|addr| future::ready(addr.header.family == AddressFamily::Inet6))
             .try_collect()
             .await?;
 
@@ -111,7 +110,8 @@ impl Connection {
             .execute()
             .try_filter(|addr| {
                 future::ready(
-                    addr.header.family == AF_INET6 as u8 && addr.header.scope == RT_SCOPE_UNIVERSE,
+                    addr.header.family == AddressFamily::Inet6
+                        && addr.header.scope == AddressScope::Universe,
                 )
             })
             .try_collect()
@@ -168,7 +168,7 @@ impl Connection {
         let id = link.header.index;
 
         let mut req = self.handle().address().add(id, addr, prefix_len);
-        req.message_mut().header.scope = RT_SCOPE_LINK;
+        req.message_mut().header.scope = AddressScope::Link;
 
         req.execute().await?;
 
@@ -198,31 +198,16 @@ impl Connection {
             .execute()
             .err_into::<Error>()
             .try_filter_map(|msg| {
-                future::ready(Ok(if let Some(Nla::Address(bytes)) = msg.nlas.first() {
-                    match msg.header.family as u16 {
-                        AF_INET => {
-                            let octets: [u8; 4] = (*bytes)
-                                .clone()
-                                .try_into()
-                                .expect("nla does not match ipv4 address length");
-                            let ip = IpAddr::from(Ipv4Addr::from(octets));
-
-                            Some(ip)
+                future::ready(Ok(
+                    if let Some(AddressAttribute::Address(ip)) = msg.attributes.first() {
+                        match msg.header.family {
+                            AddressFamily::Inet | AddressFamily::Inet6 => Some(*ip),
+                            _ => None,
                         }
-                        AF_INET6 => {
-                            let octets: [u8; 16] = (*bytes)
-                                .clone()
-                                .try_into()
-                                .expect("nla does not match ipv6 address length");
-                            let ip = IpAddr::from(Ipv6Addr::from(octets));
-
-                            Some(ip)
-                        }
-                        _ => None,
-                    }
-                } else {
-                    None
-                }))
+                    } else {
+                        None
+                    },
+                ))
             }))
     }
 }
