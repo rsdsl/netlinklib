@@ -97,13 +97,13 @@ pub mod link {
 pub mod route {
     use super::Connection;
 
-    use std::net::{Ipv4Addr, Ipv6Addr};
+    use crate::route::{Route4, Route6};
 
     impl Connection {
         blockify!(route_flush4, link: String);
         blockify!(route_flush6, link: String);
         blockify!(route_flush, link: String);
-        blockify!(route_add4, dst: Ipv4Addr, prefix_len: u8, rtr: Option<Ipv4Addr>, link: String);
-        blockify!(route_add6, dst: Ipv6Addr, prefix_len: u8, rtr: Option<Ipv6Addr>, link: String);
+        blockify!(route_add4, r: Route4);
+        blockify!(route_add6, r: Route6);
     }
 }

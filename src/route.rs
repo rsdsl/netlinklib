@@ -8,6 +8,46 @@ use futures::{future, TryStreamExt};
 use netlink_packet_route::route::{RouteAttribute, RouteMessage, RouteScope};
 use rtnetlink::IpVersion;
 
+/// An IPv4 route configuration.
+#[derive(Debug)]
+pub struct Route4 {
+    /// The destination prefix this route applies to.
+    pub dst: Ipv4Addr,
+    /// The length of the destination prefix this route applies to.
+    pub prefix_len: u8,
+    /// The (optional) router to send packets to.
+    pub rtr: Option<Ipv4Addr>,
+    /// Whether to apply the link scope to this route.
+    pub on_link: bool,
+    /// The table this route belongs to. Defaults to `main`.
+    pub table: Option<u32>,
+    /// The metric (priority) of this route. `None` causes the kernel default
+    /// to be used.
+    pub metric: Option<u32>,
+    /// The network interface to send packets over.
+    pub link: String,
+}
+
+/// An IPv6 route configuration.
+#[derive(Debug)]
+pub struct Route6 {
+    /// The destination prefix this route applies to.
+    pub dst: Ipv6Addr,
+    /// The length of the destination prefix this route applies to.
+    pub prefix_len: u8,
+    /// The (optional) router to send packets to.
+    pub rtr: Option<Ipv6Addr>,
+    /// Whether to apply the link scope to this route.
+    pub on_link: bool,
+    /// The table this route belongs to. Defaults to `main`.
+    pub table: Option<u32>,
+    /// The metric (priority) of this route. `None` causes the kernel default
+    /// to be used.
+    pub metric: Option<u32>,
+    /// The network interface to send packets over.
+    pub link: String,
+}
+
 impl Connection {
     /// Flushes all IPv4 routes from an interface.
     pub async fn route_flush4(&self, link: String) -> Result<()> {
@@ -106,22 +146,16 @@ impl Connection {
     }
 
     /// Adds a simple IPv4 route with an optional gateway.
-    pub async fn route_add4(
-        &self,
-        dst: Ipv4Addr,
-        prefix_len: u8,
-        rtr: Option<Ipv4Addr>,
-        link: String,
-    ) -> Result<()> {
+    pub async fn route_add4(&self, r: Route4) -> Result<()> {
         let link = self
             .handle()
             .link()
             .get()
-            .match_name(link.clone())
+            .match_name(r.link.clone())
             .execute()
             .try_next()
             .await?
-            .ok_or(Error::LinkNotFound(link))?;
+            .ok_or(Error::LinkNotFound(r.link))?;
 
         let id = link.header.index;
 
@@ -130,13 +164,23 @@ impl Connection {
             .route()
             .add()
             .v4()
-            .destination_prefix(dst, prefix_len)
+            .destination_prefix(r.dst, r.prefix_len)
             .output_interface(id);
 
-        if let Some(rtr) = rtr {
+        if let Some(rtr) = r.rtr {
             add = add.gateway(rtr);
-        } else {
+        }
+
+        if r.on_link {
             add = add.scope(RouteScope::Link);
+        }
+
+        if let Some(table) = r.table {
+            add = add.table_id(table);
+        }
+
+        if let Some(metric) = r.metric {
+            add = add.priority(metric);
         }
 
         add.execute().await?;
@@ -144,22 +188,16 @@ impl Connection {
     }
 
     /// Adds a simple IPv6 route with an optional gateway.
-    pub async fn route_add6(
-        &self,
-        dst: Ipv6Addr,
-        prefix_len: u8,
-        rtr: Option<Ipv6Addr>,
-        link: String,
-    ) -> Result<()> {
+    pub async fn route_add6(&self, r: Route6) -> Result<()> {
         let link = self
             .handle()
             .link()
             .get()
-            .match_name(link.clone())
+            .match_name(r.link.clone())
             .execute()
             .try_next()
             .await?
-            .ok_or(Error::LinkNotFound(link))?;
+            .ok_or(Error::LinkNotFound(r.link))?;
 
         let id = link.header.index;
 
@@ -168,13 +206,23 @@ impl Connection {
             .route()
             .add()
             .v6()
-            .destination_prefix(dst, prefix_len)
+            .destination_prefix(r.dst, r.prefix_len)
             .output_interface(id);
 
-        if let Some(rtr) = rtr {
+        if let Some(rtr) = r.rtr {
             add = add.gateway(rtr);
-        } else {
+        }
+
+        if r.on_link {
             add = add.scope(RouteScope::Link);
+        }
+
+        if let Some(table) = r.table {
+            add = add.table_id(table);
+        }
+
+        if let Some(metric) = r.metric {
+            add = add.priority(metric);
         }
 
         add.execute().await?;
