@@ -107,3 +107,15 @@ pub mod route {
         blockify!(route_add6, r: Route6);
     }
 }
+
+#[cfg(feature = "rule")]
+pub mod rule {
+    use super::Connection;
+
+    use crate::rule::Rule;
+
+    impl Connection {
+        blockify!(rule_add, r: Rule);
+        blockify!(rule_del, r: Rule);
+    }
+}

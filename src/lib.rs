@@ -10,6 +10,8 @@ pub mod addr;
 pub mod link;
 #[cfg(feature = "route")]
 pub mod route;
+#[cfg(feature = "rule")]
+pub mod rule;
 #[cfg(feature = "tunnel")]
 pub mod tunnel;
 
