@@ -6,6 +6,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("link {0} not found")]
     LinkNotFound(String),
+    #[error("prefix matching in protocol-agnostic route")]
+    PrefixesDisallowed,
 
     #[error("link name contains nul bytes: {0}")]
     Nul(#[from] ffi::NulError),

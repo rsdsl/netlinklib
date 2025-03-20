@@ -112,10 +112,38 @@ pub mod route {
 pub mod rule {
     use super::Connection;
 
-    use crate::rule::Rule;
+    use std::net::{Ipv4Addr, Ipv6Addr};
 
-    impl Connection {
-        blockify!(rule_add, r: Rule);
-        blockify!(rule_del, r: Rule);
+    use crate::rule::Rule;
+    use crate::Result;
+
+    impl Rule<()> {
+        pub fn blocking_add(self, c: &Connection) -> Result<()> {
+            c.rt.block_on(self.add(&c.conn))
+        }
+
+        pub fn blocking_del(self, c: &Connection) -> Result<()> {
+            c.rt.block_on(self.del(&c.conn))
+        }
+    }
+
+    impl Rule<Ipv4Addr> {
+        pub fn blocking_add(self, c: &Connection) -> Result<()> {
+            c.rt.block_on(self.add(&c.conn))
+        }
+
+        pub fn blocking_del(self, c: &Connection) -> Result<()> {
+            c.rt.block_on(self.del(&c.conn))
+        }
+    }
+
+    impl Rule<Ipv6Addr> {
+        pub fn blocking_add(self, c: &Connection) -> Result<()> {
+            c.rt.block_on(self.add(&c.conn))
+        }
+
+        pub fn blocking_del(self, c: &Connection) -> Result<()> {
+            c.rt.block_on(self.del(&c.conn))
+        }
     }
 }
