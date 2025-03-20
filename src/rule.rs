@@ -10,8 +10,8 @@ use netlink_packet_route::rule::RuleFlag;
 use rtnetlink::RuleAddRequest;
 
 /// A rule entry.
-#[derive(Debug)]
-pub struct Rule<T> {
+#[derive(Clone, Debug)]
+pub struct Rule<T: Clone> {
     /// Whether to invert the matching criteria.
     pub invert: bool,
     /// Firewall mark to match against.
@@ -122,7 +122,7 @@ impl Rule<Ipv6Addr> {
     }
 }
 
-impl<T> Rule<T> {
+impl<T: Clone> Rule<T> {
     fn prepare_add(&self, c: &Connection) -> RuleAddRequest {
         let mut add = c.handle().rule().add().action(self.action);
 

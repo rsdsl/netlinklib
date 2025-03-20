@@ -9,7 +9,7 @@ use netlink_packet_route::route::{RouteAttribute, RouteMessage, RouteScope};
 use rtnetlink::IpVersion;
 
 /// An IPv4 route configuration.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Route4 {
     /// The destination prefix this route applies to.
     pub dst: Ipv4Addr,
@@ -29,7 +29,7 @@ pub struct Route4 {
 }
 
 /// An IPv6 route configuration.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Route6 {
     /// The destination prefix this route applies to.
     pub dst: Ipv6Addr,
