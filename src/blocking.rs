@@ -105,6 +105,8 @@ pub mod route {
         blockify!(route_flush, link: String);
         blockify!(route_add4, r: Route4);
         blockify!(route_add6, r: Route6);
+        blockify!(route_del4, r: Route4);
+        blockify!(route_del6, r: Route6);
     }
 }
 

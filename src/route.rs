@@ -228,4 +228,96 @@ impl Connection {
         add.execute().await?;
         Ok(())
     }
+
+    /// Deletes a simple IPv4 route with an optional gateway.
+    pub async fn route_del4(&self, r: Route4) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(r.link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(r.link))?;
+
+        let id = link.header.index;
+
+        let mut add = self
+            .handle()
+            .route()
+            .add()
+            .v4()
+            .destination_prefix(r.dst, r.prefix_len)
+            .output_interface(id);
+
+        if let Some(rtr) = r.rtr {
+            add = add.gateway(rtr);
+        }
+
+        if r.on_link {
+            add = add.scope(RouteScope::Link);
+        }
+
+        if let Some(table) = r.table {
+            add = add.table_id(table);
+        }
+
+        if let Some(metric) = r.metric {
+            add = add.priority(metric);
+        }
+
+        self.handle()
+            .route()
+            .del(add.message_mut().clone())
+            .execute()
+            .await?;
+        Ok(())
+    }
+
+    /// Deletes a simple IPv6 route with an optional gateway.
+    pub async fn route_del6(&self, r: Route6) -> Result<()> {
+        let link = self
+            .handle()
+            .link()
+            .get()
+            .match_name(r.link.clone())
+            .execute()
+            .try_next()
+            .await?
+            .ok_or(Error::LinkNotFound(r.link))?;
+
+        let id = link.header.index;
+
+        let mut add = self
+            .handle()
+            .route()
+            .add()
+            .v6()
+            .destination_prefix(r.dst, r.prefix_len)
+            .output_interface(id);
+
+        if let Some(rtr) = r.rtr {
+            add = add.gateway(rtr);
+        }
+
+        if r.on_link {
+            add = add.scope(RouteScope::Link);
+        }
+
+        if let Some(table) = r.table {
+            add = add.table_id(table);
+        }
+
+        if let Some(metric) = r.metric {
+            add = add.priority(metric);
+        }
+
+        self.handle()
+            .route()
+            .del(add.message_mut().clone())
+            .execute()
+            .await?;
+        Ok(())
+    }
 }
